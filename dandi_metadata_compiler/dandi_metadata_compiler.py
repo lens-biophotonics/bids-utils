@@ -122,8 +122,8 @@ class DandiMetadataCompiler:
             "AcquisitionDate": datetime.datetime.strptime(
                 self._get_value("AcquisitionDate", yml_dict, self.path_parse_dict["date"]), "%Y%m%d").isoformat(),
             "Channels": yml_dict["Channels"],
-            "bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
-            "json_common": yml_dict["json_common"],
+            #"bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
+            #"json_common": yml_dict["json_common"],
         }
 
         if config_dict["Name"] is None:
