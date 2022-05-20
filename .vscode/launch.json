@@ -1,0 +1,20 @@
+{
+    // Usare IntelliSense per informazioni sui possibili attributi.
+    // Al passaggio del mouse vengono visualizzate le descrizioni degli attributi esistenti.
+    // Per altre informazioni, visitare: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: dandi_metadata_compiler",
+            "type": "python",
+            "request": "launch",
+            "program": "dandi_metadata_compiler.py",
+            "console": "integratedTerminal",
+            "args": ["/mnt/olimpo1/NIH/DANDI/000026/rawdata_biolab/to_be_processed/20220328_I38_50_LeftDet_488_RightDet_638/tiff_left",
+                "-c", "i38_cfg.yml",
+                "-o", "prova"],
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/dandi_metadata_compiler"
+        }
+    ]
+}
