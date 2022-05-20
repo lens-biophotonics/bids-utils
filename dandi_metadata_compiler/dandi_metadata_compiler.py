@@ -63,12 +63,17 @@ class DandiMetadataCompiler:
 
         self.config_file = config_file
         self.output_json = output_json
-        self.stitchfile_path = self.input_dir.parent.joinpath("stitch.yml")
+        self.stitchfile_path = self.input_dir.joinpath("stitch.yml")
         self.filematrix = FileMatrix(str(self.stitchfile_path))
         self.config_dict = self._parse_config_file(self.config_file)
 
         if output_dir is None:
             self.output_dir = self.input_dir
+        else:
+            self.output_dir = output_dir
+
+        if not self.output_dir.exists():
+            self.output_dir.mkdir(parents=True)
 
         self.write_xml = write_xml
         self.write_json = write_json
@@ -97,10 +102,11 @@ class DandiMetadataCompiler:
             "Species": str(self._get_value("Species", yml_dict, "Homo Sapiens")),
             "BodyPart": str(self._get_value("BodyPart", yml_dict, "BRAIN")),
             "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, None)),
+            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, None)),
             "Environment": str(self._get_value("Environment", yml_dict, "exvivo")),
             # channel config
-            "ExcitationWavelength": int(self._get_value("ExcitationWavelength", yml_dict, None)),
-            "EmissionWavelength": int(self._get_value("EmissionWavelength", yml_dict, None)),
+            "ExcitationWavelength": self._get_value("ExcitationWavelength", yml_dict, None),
+            "EmissionWavelength": self._get_value("EmissionWavelength", yml_dict, None),
             "PhysicalUnit": str(self._get_value("PhysicalUnit", yml_dict, "nm")),
             "Name": str(self._get_value("Name", yml_dict, None)),
             "Fluor": str(self._get_value("Fluor", yml_dict, None)),
@@ -125,6 +131,11 @@ class DandiMetadataCompiler:
             #"bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
             #"json_common": yml_dict["json_common"],
         }
+
+        if config_dict["ExcitationWavelength"] is not None:
+            config_dict["ExcitationWavelength"] = int(config_dict["ExcitationWavelength"])
+        if config_dict["EmissionWavelength"] is not None:
+            config_dict["EmissionWavelength"] = int(config_dict["EmissionWavelength"])
 
         if config_dict["Name"] is None:
             # if Name is not specified in config file, use the channel name obtained from the path
@@ -164,11 +175,10 @@ class DandiMetadataCompiler:
 
     def _parse_path(self) -> dict:
 
-        parent_parent_path = self.input_dir.parent.parent
         parent_path = self.input_dir.parent
-        date_str, subject, sample_str, _, left_channel_str, _, right_channel_str = parent_parent_path.name.split("_")
+        date_str, subject, sample_str, _, left_channel_str, _, right_channel_str = parent_path.name.split("_")
         sample_idx = int(sample_str)
-        camera = parent_path.name.split("_")[1]
+        camera = self.input_dir.name.split("_")[1]
         if camera == "left":
             channel_str = left_channel_str
         elif camera == "right":
@@ -199,7 +209,7 @@ class DandiMetadataCompiler:
 
     def process_dir(self):
         """process input directory"""
-        chunk_tiff_paths = sorted(list(self.input_dir.glob("x_*y_*z_.ome.tif")))
+        chunk_tiff_paths = sorted(list(self.input_dir.glob("x_*y_*z_*.ome.tif")))
         fused_path = self.input_dir.joinpath("fused.ome.tif")
         mip_path = self.input_dir.joinpath("mip.ome.tif")
 
@@ -214,7 +224,7 @@ class DandiMetadataCompiler:
             "PixelSize": self.config_dict["PixelSize"],
             "PixelSizeUnits": "um",
             "BodyPart": self.config_dict["BodyPart"],
-            "BodyPartDetails": self.config_dict["BodyPartDetails"],
+            "BodyPartDetails": self.config_dict["BodyPartDetailsExtended"],
             "BodyPartDetailsOntology": self.config_dict["BodyPartDetailsOntology"],
             "Pathology": self.config_dict["Pathology"],
             "Environment": self.config_dict["Environment"],
@@ -318,9 +328,9 @@ class DandiMetadataCompiler:
         """get the chunk transformation matrix from the chunk fpath"""
         chunk_key = "./" + chunk_fpath.name
         return [
-            [0.0, 0.0, 0.0, self.filematrix.data_frame.loc[chunk_key, "Xs"]],
-            [0.0, 0.0, 0.0, self.filematrix.data_frame.loc[chunk_key, "Ys"]],
-            [0.0, 0.0, 0.0, self.filematrix.data_frame.loc[chunk_key, "Zs"]],
+            [0.0, 0.0, 0.0, int(self.filematrix.data_frame.loc[chunk_key, "Xs"])],
+            [0.0, 0.0, 0.0, int(self.filematrix.data_frame.loc[chunk_key, "Ys"])],
+            [0.0, 0.0, 0.0, int(self.filematrix.data_frame.loc[chunk_key, "Zs"])],
             [0.0, 0.0, 0.0, 1.0],
         ]
 
