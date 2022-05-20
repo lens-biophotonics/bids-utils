@@ -24,9 +24,9 @@ def main():
 
     args = parser.parse_args()
 
-    input_dir = Path(args.input_dir)
-    config_file = Path(args.output_dir)
-    output_dir = Path(args.output_dir) if args.output_dir is not None else input_dir
+    input_dir = Path(args.input_dir[0])
+    config_file = Path(args.config[0])
+    output_dir = Path(args.output_dir[0]) if args.output_dir is not None else input_dir
 
     write_xml = not args.noxml
     write_json = not args.nojson
