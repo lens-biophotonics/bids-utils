@@ -12,7 +12,7 @@ import yaml
 
 def main():
     parser = ArgumentParser(description='Create DANDI XML from tiff files')
-    parser.add_argument("input_dir", metavar="input_dir", type=str, nargs=1, help="Input directory", dest="input_dir")
+    parser.add_argument("input_dir", metavar="input_dir", type=str, nargs=1, help="Input directory")
     parser.add_argument("-c", "--config", metavar="config.yml", type=str, nargs=1, help="Config file, required",
                         required=True, dest="config")
     parser.add_argument("-o", "--output", metavar="output_dir", type=str, nargs=1,
