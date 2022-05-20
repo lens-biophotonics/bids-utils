@@ -19,10 +19,13 @@ def main():
 
     args = parser.parse_args()
 
-    input_dir = Path(args.input_dir)
-    output_dir = Path(args.output_dir) if args.output_dir else input_dir
+    input_dir = Path(args.input_dir[0])
+    config_file = Path(args.config[0])
+    output_dir = Path(args.output_dir[0]) if args.output_dir is not None else input_dir
+
     if not output_dir.is_dir():
         output_dir.mkdir(parents=True)
+
     write_xml = not args.noxml
     write_json = not args.nojson
     write_symlinks = not args.nosymlinks
@@ -31,11 +34,24 @@ def main():
     acquisition_dirs.sort()
 
     for acquisition_dir in tqdm.tqdm(acquisition_dirs):
-
         left_dir = acquisition_dir.joinpath("tiff_left")
         right_dir = acquisition_dir.joinpath("tiff_right")
+        print("Compiling metadata for {}".format(acquisition_dir))
 
+        print("Processing left images")
+        left_dmc = DandiMetadataCompiler(input_dir=left_dir,
+                                         config_file=config_file,
+                                         output_dir=output_dir,
+                                         write_xml=write_xml,
+                                         write_json=write_json,
+                                         make_symlinks=write_symlinks)
+        left_dmc.process_dir()
 
-
-
-
+        print("Processing right images")
+        right_dmc = DandiMetadataCompiler(input_dir=right_dir,
+                                          config_file=config_file,
+                                          output_dir=output_dir,
+                                          write_xml=write_xml,
+                                          write_json=write_json,
+                                          make_symlinks=write_symlinks)
+        right_dmc.process_dir()
