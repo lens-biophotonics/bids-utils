@@ -101,15 +101,15 @@ class DandiMetadataCompiler:
             "Subject": str(self._get_value("Subject", yml_dict, self.path_parse_dict["subject"])),
             "Species": str(self._get_value("Species", yml_dict, "Homo Sapiens")),
             "BodyPart": str(self._get_value("BodyPart", yml_dict, "BRAIN")),
-            "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, None)),
-            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, None)),
+            "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, "")),
+            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, "")),
             "Environment": str(self._get_value("Environment", yml_dict, "exvivo")),
             # channel config
             "ExcitationWavelength": self._get_value("ExcitationWavelength", yml_dict, None),
             "EmissionWavelength": self._get_value("EmissionWavelength", yml_dict, None),
             "PhysicalUnit": str(self._get_value("PhysicalUnit", yml_dict, "nm")),
-            "Name": str(self._get_value("Name", yml_dict, None)),
-            "Fluor": str(self._get_value("Fluor", yml_dict, None)),
+            "Name": str(self._get_value("Name", yml_dict, "")),
+            "Fluor": str(self._get_value("Fluor", yml_dict, "")),
             # json common fields
             "ChunkTransformationMatrixAxis": self._get_value("ChunkTransformMatrixAxis", yml_dict, ["X", "Y", "Z"]),
             "BodyPartDetailsOntology": self._get_value("BodyPartDetailsOntology", yml_dict,
@@ -137,7 +137,7 @@ class DandiMetadataCompiler:
         if config_dict["EmissionWavelength"] is not None:
             config_dict["EmissionWavelength"] = int(config_dict["EmissionWavelength"])
 
-        if config_dict["Name"] is None:
+        if config_dict["Name"] == "":
             # if Name is not specified in config file, use the channel name obtained from the path
             # and get the wavelength from the channel name
             channel_wavelenght = self.path_parse_dict["channel"]
