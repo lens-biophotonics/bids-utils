@@ -55,3 +55,7 @@ def main():
                                           write_json=write_json,
                                           make_symlinks=write_symlinks)
         right_dmc.process_dir()
+
+
+if __name__ == "__main__":
+    main()
