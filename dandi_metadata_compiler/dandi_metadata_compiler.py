@@ -260,20 +260,22 @@ class DandiMetadataCompiler:
         }
 
         # FUSED
-        fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
-        fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
-        fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
-        fused_array_shape = self._get_stack_shape(fused_path)
-        fused_ome_dict = ome_config_dict.copy()
-        fused_ome_dict["Name"] = fused_namestring
+        if fused_path.is_file():
+            fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
+            fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
+            fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
+            fused_array_shape = self._get_stack_shape(fused_path)
+            fused_ome_dict = ome_config_dict.copy()
+            fused_ome_dict["Name"] = fused_namestring
 
         # MIP
-        mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
-        mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
-        mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
-        mip_array_shape = self._get_stack_shape(mip_path)
-        mip_ome_dict = ome_config_dict.copy()
-        mip_ome_dict["Name"] = mip_namestring
+        if mip_path.is_file():
+            mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
+            mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
+            mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
+            mip_array_shape = self._get_stack_shape(mip_path)
+            mip_ome_dict = ome_config_dict.copy()
+            mip_ome_dict["Name"] = mip_namestring
 
         if self.write_xml:
             fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
