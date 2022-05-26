@@ -16,6 +16,7 @@ def main():
     parser.add_argument("--noxml", action="store_true", help="Do not create xml file", required=False)
     parser.add_argument("--nojson", action="store_true", help="Do not create json file", required=False)
     parser.add_argument("--nosymlinks", action="store_true", help="Do not create symlinks", required=False)
+    parser.add_argument("--skip", action="store_true", help="Skip existing files", required=False)
 
     args = parser.parse_args()
 
@@ -29,6 +30,8 @@ def main():
     write_xml = not args.noxml
     write_json = not args.nojson
     write_symlinks = not args.nosymlinks
+
+    skip = args.skip
 
     acquisition_dirs = list(input_dir.glob("*_*_*_LeftDet_*_RightDet_*"))
     acquisition_dirs.sort()
@@ -44,7 +47,8 @@ def main():
                                          output_dir=output_dir,
                                          write_xml=write_xml,
                                          write_json=write_json,
-                                         make_symlinks=write_symlinks)
+                                         make_symlinks=write_symlinks,
+                                         skip_existing=skip)
         left_dmc.process_dir()
 
         print("Processing right images")
@@ -53,7 +57,8 @@ def main():
                                           output_dir=output_dir,
                                           write_xml=write_xml,
                                           write_json=write_json,
-                                          make_symlinks=write_symlinks)
+                                          make_symlinks=write_symlinks,
+                                          skip_existing=skip)
         right_dmc.process_dir()
 
 

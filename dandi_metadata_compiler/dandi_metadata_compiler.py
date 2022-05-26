@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import datetime
 import json
 import os
+from pytest import skip
 
 from tqdm import tqdm
 from zetastitcher import FileMatrix, InputFile
@@ -56,13 +57,16 @@ class DandiMetadataCompiler:
                  output_json: bool = False,
                  write_xml: bool = True,
                  write_json: bool = True,
-                 make_symlinks: bool = False):
+                 make_symlinks: bool = False,
+                 skip_existing: bool = False):
 
         self.input_dir = input_dir
         self.path_parse_dict = self._parse_path()
 
         self.config_file = config_file
         self.output_json = output_json
+
+        self.skip_existing = skip_existing
         self.stitchfile_path = self.input_dir.joinpath("stitch.yml")
         self.filematrix = FileMatrix(str(self.stitchfile_path))
         self.config_dict = self._parse_config_file(self.config_file)
@@ -278,28 +282,37 @@ class DandiMetadataCompiler:
             mip_ome_dict["Name"] = mip_namestring
 
         if self.write_xml:
-            fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
-                                             dimension_order="ZYX",
-                                             array=None,
-                                             metadata=fused_ome_dict,
-                                             arr_shape=list(fused_array_shape))
-            fused_ome_writer.write_xml(fused_xml_path)
-            mip_ome_writer = OMETIFFWriter(fpath=self.output_dir,
-                                           dimension_order="ZYX",
-                                           array=None,
-                                           metadata=mip_ome_dict,
-                                           arr_shape=list(mip_array_shape))
-            mip_ome_writer.write_xml(mip_xml_path)
+            if fused_path.is_file():
+                fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
+                                                dimension_order="ZYX",
+                                                array=None,
+                                                metadata=fused_ome_dict,
+                                                arr_shape=list(fused_array_shape))
+
+                fused_ome_writer.write_xml(fused_xml_path)
+            if mip_path.is_file():
+                mip_ome_writer = OMETIFFWriter(fpath=self.output_dir,
+                                            dimension_order="ZYX",
+                                            array=None,
+                                            metadata=mip_ome_dict,
+                                            arr_shape=list(mip_array_shape))
+                mip_ome_writer.write_xml(mip_xml_path)
 
         if self.make_symlinks:
-            self._make_symlink(in_fpath=fused_path, link_fpath=fused_symlink_path)
-            self._make_symlink(in_fpath=mip_path, link_fpath=mip_symlink_path)
+            if fused_path.is_file():
+                self._make_symlink(in_fpath=fused_path, link_fpath=fused_symlink_path)
+            if mip_path.is_file():
+                self._make_symlink(in_fpath=mip_path, link_fpath=mip_symlink_path)
 
         for chunk_idx, chunk_tiff_path in enumerate(tqdm(chunk_tiff_paths)):
             chunk_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_chunk-{chunk_idx:02d}_{ses}"
             chunk_xml_out_path = self.output_dir.joinpath(f"{chunk_namestring}.xml")
             chunk_json_out_path = self.output_dir.joinpath(f"{chunk_namestring}.json")
             chunk_symlink_path = self.output_dir.joinpath(f"{chunk_namestring}.ome.tif")
+
+            if self.skip_existing:
+                if chunk_xml_out_path.exists():
+                    continue
 
             chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
             if self.write_xml:
