@@ -13,6 +13,9 @@ def main():
     parser.add_argument("-o", "--output", metavar="output_dir", type=str, nargs=1,
                         help="Output directory, defaults to input directory",
                         required=False, default=None, dest="output_dir")
+    parser.add_argument("--pattern", metavar="pattern", type=str, nargs=1,
+                        help="Folder pattern, optional ",
+                        required=False, default=None, dest="pattern")
     parser.add_argument("--noxml", action="store_true", help="Do not create xml file", required=False)
     parser.add_argument("--nojson", action="store_true", help="Do not create json file", required=False)
     parser.add_argument("--nosymlinks", action="store_true", help="Do not create symlinks", required=False)
@@ -24,6 +27,8 @@ def main():
     config_file = Path(args.config[0])
     output_dir = Path(args.output_dir[0]) if args.output_dir is not None else input_dir
 
+    pattern = args.pattern[0]
+
     if not output_dir.is_dir():
         output_dir.mkdir(parents=True)
 
@@ -34,6 +39,11 @@ def main():
     skip = args.skip
 
     acquisition_dirs = list(input_dir.glob("*_*_*_LeftDet_*_RightDet_*"))
+
+    if pattern is not None:
+        acquisition_dirs = [fdir for fdir in acquisition_dirs if pattern in fdir.name]
+
+
     acquisition_dirs.sort()
 
     for acquisition_dir in tqdm.tqdm(acquisition_dirs):
