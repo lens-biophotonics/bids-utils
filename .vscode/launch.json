@@ -15,6 +15,20 @@
                 "-o", "prova"],
             "justMyCode": false,
             "cwd": "${workspaceFolder}/dandi_metadata_compiler"
+        },
+
+        {
+            "name": "Python: bulk_metadata_compiler",
+            "type": "python",
+            "request": "launch",
+            "program": "bulk_compile_metadata.py",
+            "console": "integratedTerminal",
+            "args": ["/mnt/olimpo1/NIH/DANDI/000026/rawdata_biolab/to_be_processed/",
+                "-c", "i38_cfg.yml",
+                "-o", "prova",
+                "--pattern", "I38_9_"],
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/dandi_metadata_compiler"
         }
     ]
 }

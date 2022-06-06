@@ -69,13 +69,16 @@ class DandiMetadataCompiler:
                  process_fused: bool = True,
                  write_xml: bool = True,
                  write_json: bool = True,
-                 make_symlinks: bool = False):
+                 make_symlinks: bool = False,
+                 skip_existing: bool = False):
 
         self.input_dir = input_dir
         self.path_parse_dict = self._parse_path()
 
         self.config_file = config_file
         self.output_json = output_json
+
+        self.skip_existing = skip_existing
         self.stitchfile_path = self.input_dir.joinpath("stitch.yml")
         self.filematrix = FileMatrix(str(self.stitchfile_path))
         self.config_dict = self._parse_config_file(self.config_file)
@@ -118,15 +121,15 @@ class DandiMetadataCompiler:
             "Subject": str(self._get_value("Subject", yml_dict, self.path_parse_dict["subject"])),
             "Species": str(self._get_value("Species", yml_dict, "Homo Sapiens")),
             "BodyPart": str(self._get_value("BodyPart", yml_dict, "BRAIN")),
-            "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, None)),
-            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, None)),
+            "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, "")),
+            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, "")),
             "Environment": str(self._get_value("Environment", yml_dict, "exvivo")),
             # channel config
             "ExcitationWavelength": self._get_value("ExcitationWavelength", yml_dict, None),
             "EmissionWavelength": self._get_value("EmissionWavelength", yml_dict, None),
             "PhysicalUnit": str(self._get_value("PhysicalUnit", yml_dict, "nm")),
-            "Name": str(self._get_value("Name", yml_dict, None)),
-            "Fluor": str(self._get_value("Fluor", yml_dict, None)),
+            "Name": str(self._get_value("Name", yml_dict, "")),
+            "Fluor": str(self._get_value("Fluor", yml_dict, "")),
             # json common fields
             "ChunkTransformationMatrixAxis": self._get_value("ChunkTransformMatrixAxis", yml_dict, ["X", "Y", "Z"]),
             "BodyPartDetailsOntology": self._get_value("BodyPartDetailsOntology", yml_dict,
@@ -154,7 +157,7 @@ class DandiMetadataCompiler:
         if config_dict["EmissionWavelength"] is not None:
             config_dict["EmissionWavelength"] = int(config_dict["EmissionWavelength"])
 
-        if config_dict["Name"] is None:
+        if config_dict["Name"] == "":
             # if Name is not specified in config file, use the channel name obtained from the path
             # and get the wavelength from the channel name
             channel_wavelenght = self.path_parse_dict["channel"]
@@ -277,7 +280,7 @@ class DandiMetadataCompiler:
         }
 
         # FUSED
-        if self.process_fused:
+        if self.process_fused and fused_path.is_file():
             fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
             fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
             fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
@@ -296,7 +299,7 @@ class DandiMetadataCompiler:
                 self._make_symlink(in_fpath=fused_path, link_fpath=fused_symlink_path)
 
         # MIP
-        if self.process_mips:
+        if self.process_mips and mip_path.is_file():
             mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
             mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
             mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
@@ -319,6 +322,10 @@ class DandiMetadataCompiler:
                 chunk_xml_out_path = self.output_dir.joinpath(f"{chunk_namestring}.xml")
                 chunk_json_out_path = self.output_dir.joinpath(f"{chunk_namestring}.json")
                 chunk_symlink_path = self.output_dir.joinpath(f"{chunk_namestring}.ome.tif")
+
+                if self.skip_existing:
+                    if chunk_xml_out_path.exists():
+                        continue
 
                 chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
                 if self.write_xml:
