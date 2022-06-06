@@ -21,6 +21,9 @@ def main():
     parser.add_argument("--noxml", action="store_true", help="Do not create xml file", required=False)
     parser.add_argument("--nojson", action="store_true", help="Do not create json file", required=False)
     parser.add_argument("--nosymlinks", action="store_true", help="Do not create symlinks", required=False)
+    parser.add_argument("--nochunks", action="store_true", default=False, help="dot not process chunks", required=False)
+    parser.add_argument("--nomips", action="store_true", default=False, help="dot not process mips", required=False)
+    parser.add_argument("--nofused", action="store_true", default=False, help="dot not process fused", required=False)
 
     args = parser.parse_args()
 
@@ -32,6 +35,10 @@ def main():
     write_json = not args.nojson
     make_symlinks = not args.nosymlinks
 
+    process_chunks = not args.nochunks
+    process_mips = not args.nomips
+    process_fused = not args.nofused
+
     if not input_dir.exists():
         print("Input dir does not exist")
         exit(1)
@@ -42,6 +49,9 @@ def main():
     metacomp = DandiMetadataCompiler(input_dir=input_dir,
                                      config_file=config_file,
                                      output_dir=output_dir,
+                                     process_chunks=process_chunks,
+                                     process_mips=process_mips,
+                                     process_fused=process_fused,
                                      write_xml=write_xml,
                                      write_json=write_json,
                                      make_symlinks=make_symlinks)
@@ -54,6 +64,9 @@ class DandiMetadataCompiler:
                  config_file: Path,
                  output_dir: Path = None,
                  output_json: bool = False,
+                 process_chunks: bool = True,
+                 process_mips: bool = True,
+                 process_fused: bool = True,
                  write_xml: bool = True,
                  write_json: bool = True,
                  make_symlinks: bool = False):
@@ -78,6 +91,10 @@ class DandiMetadataCompiler:
         self.write_xml = write_xml
         self.write_json = write_json
         self.make_symlinks = make_symlinks
+
+        self.process_chunks = process_chunks
+        self.process_mips = process_mips
+        self.process_fused = process_fused
 
     @staticmethod
     def _get_value(key,
@@ -128,8 +145,8 @@ class DandiMetadataCompiler:
             "AcquisitionDate": datetime.datetime.strptime(
                 self._get_value("AcquisitionDate", yml_dict, self.path_parse_dict["date"]), "%Y%m%d").isoformat(),
             "Channels": yml_dict["Channels"],
-            #"bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
-            #"json_common": yml_dict["json_common"],
+            # "bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
+            # "json_common": yml_dict["json_common"],
         }
 
         if config_dict["ExcitationWavelength"] is not None:
@@ -260,69 +277,73 @@ class DandiMetadataCompiler:
         }
 
         # FUSED
-        fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
-        fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
-        fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
-        fused_array_shape = self._get_stack_shape(fused_path)
-        fused_ome_dict = ome_config_dict.copy()
-        fused_ome_dict["Name"] = fused_namestring
+        if self.process_fused:
+            fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
+            fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
+            fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
+            fused_array_shape = self._get_stack_shape(fused_path)
+            fused_ome_dict = ome_config_dict.copy()
+            fused_ome_dict["Name"] = fused_namestring
 
-        # MIP
-        mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
-        mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
-        mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
-        mip_array_shape = self._get_stack_shape(mip_path)
-        mip_ome_dict = ome_config_dict.copy()
-        mip_ome_dict["Name"] = mip_namestring
-
-        if self.write_xml:
-            fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
-                                             dimension_order="ZYX",
-                                             array=None,
-                                             metadata=fused_ome_dict,
-                                             arr_shape=list(fused_array_shape))
-            fused_ome_writer.write_xml(fused_xml_path)
-            mip_ome_writer = OMETIFFWriter(fpath=self.output_dir,
-                                           dimension_order="ZYX",
-                                           array=None,
-                                           metadata=mip_ome_dict,
-                                           arr_shape=list(mip_array_shape))
-            mip_ome_writer.write_xml(mip_xml_path)
-
-        if self.make_symlinks:
-            self._make_symlink(in_fpath=fused_path, link_fpath=fused_symlink_path)
-            self._make_symlink(in_fpath=mip_path, link_fpath=mip_symlink_path)
-
-        for chunk_idx, chunk_tiff_path in enumerate(tqdm(chunk_tiff_paths)):
-            chunk_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_chunk-{chunk_idx:02d}_{ses}"
-            chunk_xml_out_path = self.output_dir.joinpath(f"{chunk_namestring}.xml")
-            chunk_json_out_path = self.output_dir.joinpath(f"{chunk_namestring}.json")
-            chunk_symlink_path = self.output_dir.joinpath(f"{chunk_namestring}.ome.tif")
-
-            chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
             if self.write_xml:
-                chunk_ome_dict = ome_config_dict.copy()
-                chunk_ome_dict["Name"] = chunk_namestring
-
-                chunk_ome_writer = OMETIFFWriter(fpath=self.output_dir,
+                fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
                                                  dimension_order="ZYX",
                                                  array=None,
-                                                 metadata=chunk_ome_dict,
-                                                 arr_shape=list(chunk_array_shape).copy())
-                chunk_ome_writer.write_xml(xml_fpath=chunk_xml_out_path)
-
-            if self.write_json:
-                # write sidecar json
-                chunk_transform_matrix = self._get_chunktransformationmatrix(chunk_tiff_path)
-                chunk_json_dict = json_dict.copy()
-                chunk_json_dict.update({
-                    "ChunkTransformationMatrix": chunk_transform_matrix,
-                })
-                self._dump_dict_to_json(chunk_json_out_path, chunk_json_dict)
-
+                                                 metadata=fused_ome_dict,
+                                                 arr_shape=list(fused_array_shape))
+                fused_ome_writer.write_xml(fused_xml_path)
             if self.make_symlinks:
-                self._make_symlink(in_fpath=chunk_tiff_path,
-                                   link_fpath=chunk_symlink_path)
+                self._make_symlink(in_fpath=fused_path, link_fpath=fused_symlink_path)
+
+        # MIP
+        if self.process_mips:
+            mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
+            mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
+            mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
+            mip_array_shape = self._get_stack_shape(mip_path)
+            mip_ome_dict = ome_config_dict.copy()
+            mip_ome_dict["Name"] = mip_namestring
+            if self.write_xml:
+                mip_ome_writer = OMETIFFWriter(fpath=self.output_dir,
+                                               dimension_order="ZYX",
+                                               array=None,
+                                               metadata=mip_ome_dict,
+                                               arr_shape=list(mip_array_shape))
+                mip_ome_writer.write_xml(mip_xml_path)
+            if self.make_symlinks:
+                self._make_symlink(in_fpath=mip_path, link_fpath=mip_symlink_path)
+
+        if self.process_chunks:
+            for chunk_idx, chunk_tiff_path in enumerate(tqdm(chunk_tiff_paths)):
+                chunk_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_chunk-{chunk_idx:02d}_{ses}"
+                chunk_xml_out_path = self.output_dir.joinpath(f"{chunk_namestring}.xml")
+                chunk_json_out_path = self.output_dir.joinpath(f"{chunk_namestring}.json")
+                chunk_symlink_path = self.output_dir.joinpath(f"{chunk_namestring}.ome.tif")
+
+                chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
+                if self.write_xml:
+                    chunk_ome_dict = ome_config_dict.copy()
+                    chunk_ome_dict["Name"] = chunk_namestring
+
+                    chunk_ome_writer = OMETIFFWriter(fpath=self.output_dir,
+                                                     dimension_order="ZYX",
+                                                     array=None,
+                                                     metadata=chunk_ome_dict,
+                                                     arr_shape=list(chunk_array_shape).copy())
+                    chunk_ome_writer.write_xml(xml_fpath=chunk_xml_out_path)
+
+                if self.write_json:
+                    # write sidecar json
+                    chunk_transform_matrix = self._get_chunktransformationmatrix(chunk_tiff_path)
+                    chunk_json_dict = json_dict.copy()
+                    chunk_json_dict.update({
+                        "ChunkTransformationMatrix": chunk_transform_matrix,
+                    })
+                    self._dump_dict_to_json(chunk_json_out_path, chunk_json_dict)
+
+                if self.make_symlinks:
+                    self._make_symlink(in_fpath=chunk_tiff_path,
+                                       link_fpath=chunk_symlink_path)
 
     def _get_chunktransformationmatrix(self, chunk_fpath: Path) -> list:
         """get the chunk transformation matrix from the chunk fpath"""

@@ -17,6 +17,10 @@ def main():
     parser.add_argument("--nojson", action="store_true", help="Do not create json file", required=False)
     parser.add_argument("--nosymlinks", action="store_true", help="Do not create symlinks", required=False)
 
+    parser.add_argument("--nochunks", action="store_true", default=False, help="dot not process chunks", required=False)
+    parser.add_argument("--nomips", action="store_true", default=False, help="dot not process mips", required=False)
+    parser.add_argument("--nofused", action="store_true", default=False, help="dot not process fused", required=False)
+
     args = parser.parse_args()
 
     input_dir = Path(args.input_dir[0])
@@ -30,6 +34,10 @@ def main():
     write_json = not args.nojson
     write_symlinks = not args.nosymlinks
 
+    process_chunks = not args.nochunks
+    process_mips = not args.nomips
+    process_fused = not args.nofused
+
     acquisition_dirs = list(input_dir.glob("*_*_*_LeftDet_*_RightDet_*"))
     acquisition_dirs.sort()
 
@@ -42,6 +50,9 @@ def main():
         left_dmc = DandiMetadataCompiler(input_dir=left_dir,
                                          config_file=config_file,
                                          output_dir=output_dir,
+                                         process_chunks=process_chunks,
+                                         process_mips=process_mips,
+                                         process_fused=process_fused,
                                          write_xml=write_xml,
                                          write_json=write_json,
                                          make_symlinks=write_symlinks)
@@ -51,6 +62,9 @@ def main():
         right_dmc = DandiMetadataCompiler(input_dir=right_dir,
                                           config_file=config_file,
                                           output_dir=output_dir,
+                                          process_chunks=process_chunks,
+                                          process_mips=process_mips,
+                                          process_fused=process_fused,
                                           write_xml=write_xml,
                                           write_json=write_json,
                                           make_symlinks=write_symlinks)
