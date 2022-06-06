@@ -182,6 +182,8 @@ class DandiMetadataCompiler:
 
     @staticmethod
     def _dump_dict_to_json(json_fpath: Path, json_dict: dict):
+        if json_fpath.exists():
+            json_fpath.unlink()
         with json_fpath.open(mode="w") as wfile:
             json.dump(json_dict, wfile, indent=4, sort_keys=True)
 
