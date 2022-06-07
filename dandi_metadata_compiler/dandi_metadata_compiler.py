@@ -286,11 +286,11 @@ class DandiMetadataCompiler:
             fused_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_fused"
             fused_xml_path = self.output_dir.joinpath(f"{fused_namestring}.xml")
             fused_symlink_path = self.output_dir.joinpath(f"{fused_namestring}.ome.tif")
-            fused_array_shape = self._get_stack_shape(fused_path)
             fused_ome_dict = ome_config_dict.copy()
             fused_ome_dict["Name"] = fused_namestring
 
             if self.write_xml:
+                fused_array_shape = self._get_stack_shape(fused_path)
                 fused_ome_writer = OMETIFFWriter(fpath=self.output_dir,
                                                  dimension_order="ZYX",
                                                  array=None,
@@ -305,10 +305,10 @@ class DandiMetadataCompiler:
             mip_namestring = f"sub-{sub}_ses-{ses}_sample-{sample}_stain-{stain}_{ses}_mip"
             mip_xml_path = self.output_dir.joinpath(f"{mip_namestring}.xml")
             mip_symlink_path = self.output_dir.joinpath(f"{mip_namestring}.ome.tif")
-            mip_array_shape = self._get_stack_shape(mip_path)
             mip_ome_dict = ome_config_dict.copy()
             mip_ome_dict["Name"] = mip_namestring
             if self.write_xml:
+                mip_array_shape = self._get_stack_shape(mip_path)
                 mip_ome_writer = OMETIFFWriter(fpath=self.output_dir,
                                                dimension_order="ZYX",
                                                array=None,
@@ -329,11 +329,11 @@ class DandiMetadataCompiler:
                     if chunk_xml_out_path.exists():
                         continue
 
-                chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
                 if self.write_xml:
                     chunk_ome_dict = ome_config_dict.copy()
                     chunk_ome_dict["Name"] = chunk_namestring
 
+                    chunk_array_shape = self._get_stack_shape(chunk_tiff_path)
                     chunk_ome_writer = OMETIFFWriter(fpath=self.output_dir,
                                                      dimension_order="ZYX",
                                                      array=None,
