@@ -272,7 +272,7 @@ class DandiMetadataCompiler:
                 self.config_dict["Name"]: {
                     "Name": self.config_dict["Name"],
                     "SamplesPerPixel": 1,
-                    "ExciatationWavelength": self.config_dict["ExcitationWavelength"],
+                    "ExcitationWavelength": self.config_dict["ExcitationWavelength"],
                     "ExcitationWavelengthUnit": self.config_dict["PhysicalUnit"],
                     "EmissionWavelength": self.config_dict["EmissionWavelength"],
                     "EmissionWavelengthUnit": self.config_dict["PhysicalUnit"],
