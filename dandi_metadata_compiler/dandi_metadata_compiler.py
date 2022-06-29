@@ -112,52 +112,20 @@ class DandiMetadataCompiler:
             return d[key]
 
     def _parse_config_file(self, config_file_fpath: Path) -> dict:
-        yml_dict = self._read_yml(config_file_fpath)
-        config_dict = {
-            "Modality": self._get_value("Modality", yml_dict, "SPIM"),
-            "PixelSize": self._get_value("PixelSize", yml_dict, [3.6, 3.6, 3.6]),
-            "PixelSizeUnit": str(self._get_value("PixelSizeUnit", yml_dict, "µm")),
-            "BitDepth": int(self._get_value("BitDepth", yml_dict, 16)),
-            "Subject": str(self._get_value("Subject", yml_dict, self.path_parse_dict["subject"])),
-            "Species": str(self._get_value("Species", yml_dict, "Homo Sapiens")),
-            "BodyPart": str(self._get_value("BodyPart", yml_dict, "BRAIN")),
-            "BodyPartDetails": str(self._get_value("BodyPartDetails", yml_dict, "")),
-            "BodyPartDetailsExtended": str(self._get_value("BodyPartDetailsExtended", yml_dict, "")),
-            "Environment": str(self._get_value("Environment", yml_dict, "exvivo")),
-            # channel config
-            "ExcitationWavelength": self._get_value("ExcitationWavelength", yml_dict, None),
-            "EmissionWavelength": self._get_value("EmissionWavelength", yml_dict, None),
-            "PhysicalUnit": str(self._get_value("PhysicalUnit", yml_dict, "nm")),
-            "Name": str(self._get_value("Name", yml_dict, "")),
-            "Fluor": str(self._get_value("Fluor", yml_dict, "")),
-            # json common fields
-            "ChunkTransformationMatrixAxis": self._get_value("ChunkTransformMatrixAxis", yml_dict, ["X", "Y", "Z"]),
-            "BodyPartDetailsOntology": self._get_value("BodyPartDetailsOntology", yml_dict,
-                                                       "http://purl.org/sig/ont/fma/fma68641"),
-            "InstitutionAddress": self._get_value("InstitutionAddress", yml_dict,
-                                                  "Via Nello Carrara 1, 50019 Sesto Fiorentino (FI), Italy"),
-            "InstitutionName": self._get_value("InstitutionName", yml_dict,
-                                               "LENS - European Laboratory for NonLinear Spectroscopy - University of Florence"),
-            "InstitutionalDepartmentName": self._get_value("InstitutionalDepartmentName", yml_dict, "BioPhotonics Lab"),
-            "Pathology": self._get_value("Pathology", yml_dict, "no pathology"),
-            "SampleExtractionInstitution": self._get_value("SampleExtractionInstitution", yml_dict,
-                                                           "Massachussetts General Hospital"),
-            "SampleExtractionProtocol": self._get_value("SampleExtractionProtocol", yml_dict, "autopsy"),
-            "SampleFixation": self._get_value("SampleFixation", yml_dict, None),
-            "Sample_idx": int(self._get_value("Sample_idx", yml_dict, self.path_parse_dict["sample_idx"])),
-            "AcquisitionDate": datetime.datetime.strptime(
-                self._get_value("AcquisitionDate", yml_dict, self.path_parse_dict["date"]), "%Y%m%d").isoformat(),
-            "Channels": yml_dict["Channels"],
-            # "bftools_path": Path(yml_dict["paths_cfg"]["bftools_path"]),
-            # "json_common": yml_dict["json_common"],
-        }
+        config_dict = self._read_yml(config_file_fpath)
 
-        if config_dict["ExcitationWavelength"] is not None:
+        if "ExcitationWavelength" in config_dict:
             config_dict["ExcitationWavelength"] = int(config_dict["ExcitationWavelength"])
-        if config_dict["EmissionWavelength"] is not None:
+        if "EmissionWavelength" in config_dict:
             config_dict["EmissionWavelength"] = int(config_dict["EmissionWavelength"])
 
-        if config_dict["Name"] == "":
+        if "Sample_idx" not in config_dict:
+            config_dict["Sample_idx"] = self.path_parse_dict["sample_idx"]
+
+        if "AcquisitionDate" not in config_dict:
+            config_dict["AcquisitionDate"] = datetime.datetime.strptime(self.path_parse_dict["date"], "%Y%m%d").isoformat()
+
+        if "Name" not in config_dict:
             # if Name is not specified in config file, use the channel name obtained from the path
             # and get the wavelength from the channel name
             channel_wavelenght = self.path_parse_dict["channel"]
@@ -239,7 +207,8 @@ class DandiMetadataCompiler:
         ses = self.config_dict["Modality"]
         partdetails = self.config_dict["BodyPartDetails"]
         sample_idx = self.config_dict["Sample_idx"]
-        sample = f"{partdetails}S{sample_idx:02d}"
+        sample = self.config_dict["Sample"]
+        sample = f"{sample}S{sample_idx:02d}"
         stain = self.config_dict["Name"]
 
         json_dict = {
