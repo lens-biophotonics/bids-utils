@@ -243,22 +243,30 @@ class DandiMetadataCompiler:
         stain = self.config_dict["Name"]
 
         json_dict = {
-            "PixelSize": self.config_dict["PixelSize"],
             "PixelSizeUnits": "um",
-            "BodyPart": self.config_dict["BodyPart"],
-            "BodyPartDetails": self.config_dict["BodyPartDetailsExtended"],
-            "BodyPartDetailsOntology": self.config_dict["BodyPartDetailsOntology"],
-            "Pathology": self.config_dict["Pathology"],
-            "Environment": self.config_dict["Environment"],
             "SampleStaining": self.config_dict["Name"],
-            "SampleExtractionProtocol": self.config_dict["SampleExtractionProtocol"],
-            "SampleFixation": self.config_dict["SampleFixation"],
-            "ChunkTransformationMatrixAxis": self.config_dict["ChunkTransformationMatrixAxis"],
-            "InstitutionName": self.config_dict["InstitutionName"],
-            "InstitutionAddress": self.config_dict["InstitutionAddress"],
-            "InstitutionalDepartmentName": self.config_dict["InstitutionalDepartmentName"],
-            "SampleExtractionInstitution": self.config_dict["SampleExtractionInstitution"],
         }
+
+        key_list = [
+            "PixelSize",
+            "BodyPart",
+            "BodyPartDetails",
+            "BodyPartDetailsOntology",
+            "Pathology",
+            "Environment",
+            "SampleExtractionProtocol",
+            "SampleFixation",
+            "ChunkTransformationMatrixAxis",
+            "InstitutionName",
+            "InstitutionAddress",
+            "InstitutionalDepartmentName",
+            "SampleExtractionInstitution",
+        ]
+
+        for k in key_list:
+            if k in self.config_dict:
+                if self.config_dict[k] is not None:
+                    json_dict[k] = self.config_dict[k]
 
         ome_config_dict = {
             "AcquisitionDate": self.config_dict["AcquisitionDate"],
