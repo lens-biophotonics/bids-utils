@@ -6,8 +6,7 @@ Subject: I38
 Species: Homo sapiens
 BodyPart: BRAIN
 Environment: exvivo
-BodyPartDetails: BrocaArea
-BodyPartDetailsExtended: Brodmann area 44/45
+BodyPartDetails: Brodmann area 44/45
 ChunkTransformMatrixAxis: ["X", "Y", "Z"]
 BodyPartDetailsOntology: http://purl.org/sig/ont/fma/fma68641
 ChunkTransformationMatrixAxis: ["X", "Y", "Z"]
