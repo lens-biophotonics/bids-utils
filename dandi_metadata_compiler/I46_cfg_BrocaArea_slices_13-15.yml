@@ -1,0 +1,42 @@
+Sample: BrocaArea
+
+Modality: SPIM
+PixelSize: [3.3, 3.3, 3.3]
+PixelSizeUnit: µm
+BitDepth: 16
+Subject: I46
+Species: Homo sapiens
+BodyPart: BRAIN
+Environment: exvivo
+BodyPartDetails: Brodmann area 44/45
+ChunkTransformMatrixAxis: ["X", "Y", "Z"]
+BodyPartDetailsOntology: http://purl.org/sig/ont/fma/fma68641
+ChunkTransformationMatrixAxis: ["X", "Y", "Z"]
+InstitutionAddress: Via Nello Carrara 1, 50019 Sesto Fiorentino (FI), Italy
+InstitutionName: LENS - European Laboratory for NonLinear Spectroscopy - University of Florence
+InstitutionalDepartmentName: BioPhotonics Lab
+Pathology: no pathology
+SampleExtractionInstitution: Massachusetts General Hospital
+SampleExtractionProtocol: autopsy
+
+Channels:
+  488:
+    ExcitationWavelength: 488
+    EmissionWavelength: 520
+    PhysicalUnit: nm
+    Name: NeuN
+    Fluor: Alexa Fluor 488
+
+  561:
+    ExcitationWavelength: 561
+    EmissionWavelength: 617
+    PhysicalUnit: nm
+    Name: Nuclei
+    Fluor: Propidium iodide
+
+  638:
+    ExcitationWavelength: 638
+    EmissionWavelength: 671
+    PhysicalUnit: nm
+    Name: Calretinin
+    Fluor: Alexa Fluor 647
